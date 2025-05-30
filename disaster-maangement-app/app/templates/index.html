@@ -1,1 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disaster Manager - Advanced Detection & Response</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a0d2e 0%, #16213e 25%, #0f3460 50%, #0e2954 75%, #2d1b69 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Menu Toggle Button */
+        .menu-toggle {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            z-index: 1001;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.4);
+        }
+
+        .menu-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(255, 107, 53, 0.6);
+        }
+
+        .menu-toggle span {
+            width: 20px;
+            height: 2px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .menu-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .menu-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -6px);
+        }
+
+        /* Vertical Menu */
+        .vertical-menu {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: linear-gradient(180deg, rgba(26, 13, 46, 0.95) 0%, rgba(22, 33, 62, 0.95) 100%);
+            backdrop-filter: blur(20px);
+            z-index: 1000;
+            transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-right: 2px solid rgba(255, 107, 53, 0.3);
+            box-shadow: 5px 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .vertical-menu.active {
+            left: 0;
+        }
+
+        .menu-header {
+            padding: 80px 30px 40px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 107, 53, 0.2);
+        }
+
+        .menu-title {
+            color: #ff6b35;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .menu-subtitle {
+            color: #ffffff;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .menu-items {
+            padding: 20px 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 30px;
+            color: #ffffff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-item:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.1), transparent);
+            transition: left 0.6s;
+        }
+
+        .menu-item:hover:before {
+            left: 100%;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 107, 53, 0.1);
+            border-left-color: #ff6b35;
+            transform: translateX(10px);
+        }
+
+        .menu-icon {
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+
+        /* Floating space elements */
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .satellite {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.5);
+        }
+
+        .satellite:before {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 2px;
+            background: #ff6b35;
+            top: 50%;
+            left: -10px;
+            transform: translateY(-50%);
+            box-shadow: 0 0 10px rgba(255, 107, 53, 0.7);
+        }
+
+        .satellite:after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 60px;
+            background: #ff6b35;
+            left: 50%;
+            top: -10px;
+            transform: translateX(-50%);
+            box-shadow: 0 0 10px rgba(255, 107, 53, 0.7);
+        }
+
+        .satellite:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
+        .satellite:nth-child(2) { top: 20%; right: 15%; animation-delay: 2s; }
+        .satellite:nth-child(3) { bottom: 30%; left: 20%; animation-delay: 4s; }
+
+        .star {
+            position: absolute;
+            background: #ff6b35;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        .star:nth-child(4) { 
+            top: 15%; left: 30%; animation-delay: 1s; 
+            width: 4px; height: 4px;
+        }
+        .star:nth-child(5) { 
+            top: 40%; right: 25%; animation-delay: 0.5s; 
+            width: 6px; height: 6px;
+        }
+        .star:nth-child(6) { 
+            bottom: 50%; left: 60%; animation-delay: 1.5s; 
+            width: 3px; height: 3px;
+        }
+        .star:nth-child(7) { 
+            top: 60%; right: 40%; animation-delay: 2.5s; 
+            width: 5px; height: 5px;
+        }
+        .star:nth-child(8) { 
+            top: 25%; left: 70%; animation-delay: 3s; 
+            width: 4px; height: 4px;
+        }
+        .star:nth-child(9) { 
+            bottom: 20%; right: 60%; animation-delay: 1.8s; 
+            width: 3px; height: 3px;
+        }
+
+        /* Colorful floating orbs */
+        .floating-orb {
+            position: absolute;
+            border-radius: 50%;
+            animation: floatOrb 8s ease-in-out infinite;
+            filter: blur(1px);
+        }
+
+        .orb1 {
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.6), rgba(0, 153, 204, 0.3));
+            top: 30%;
+            right: 10%;
+            animation-delay: 0s;
+        }
+
+        .orb2 {
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, rgba(255, 68, 68, 0.6), rgba(204, 0, 0, 0.3));
+            bottom: 40%;
+            left: 15%;
+            animation-delay: 2s;
+        }
+
+        .orb3 {
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(147, 51, 234, 0.6), rgba(126, 34, 206, 0.3));
+            top: 70%;
+            right: 30%;
+            animation-delay: 4s;
+        }
+
+        .orb4 {
+            width: 70px;
+            height: 70px;
+            background: radial-gradient(circle, rgba(34, 197, 94, 0.6), rgba(22, 163, 74, 0.3));
+            top: 50%;
+            left: 80%;
+            animation-delay: 1s;
+        }
+
+        @keyframes floatOrb {
+            0%, 100% { 
+                transform: translateY(0px) translateX(0px) rotate(0deg);
+                opacity: 0.6;
+            }
+            33% { 
+                transform: translateY(-30px) translateX(20px) rotate(120deg);
+                opacity: 0.8;
+            }
+            66% { 
+                transform: translateY(20px) translateX(-15px) rotate(240deg);
+                opacity: 0.4;
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 80px 20px 60px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .main-title {
+            font-size: 4.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b35, #f7931e, #ffaa44);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 107, 53, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(255, 107, 53, 0.5); }
+            to { text-shadow: 0 0 40px rgba(255, 107, 53, 0.8), 0 0 60px rgba(255, 107, 53, 0.6); }
+        }
+
+        .subtitle {
+            color: #ffffff;
+            font-size: 1.3rem;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        /* Flashcards Section */
+        .flashcards-section {
+            padding: 60px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #ffffff;
+            margin-bottom: 50px;
+            animation: slideInDown 1s ease-out;
+        }
+
+        .flashcards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 80px;
+        }
+
+        .flashcard {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(25px);
+            border-radius: 25px;
+            padding: 35px;
+            border: 2px solid transparent;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            box-shadow: 
+                0 15px 35px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .flashcard:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.8s;
+        }
+
+        .flashcard:after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 107, 53, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .flashcard:hover:before {
+            left: 100%;
+        }
+
+        .flashcard:hover:after {
+            opacity: 1;
+        }
+
+        .flashcard.cyclone {
+            background: linear-gradient(145deg, 
+                rgba(0, 212, 255, 0.2) 0%, 
+                rgba(0, 153, 204, 0.15) 50%, 
+                rgba(0, 100, 150, 0.1) 100%);
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            box-shadow: 
+                0 15px 35px rgba(0, 150, 200, 0.4),
+                inset 0 1px 0 rgba(0, 212, 255, 0.3),
+                0 0 50px rgba(0, 212, 255, 0.2);
+        }
+
+        .flashcard.hurricane {
+            background: linear-gradient(145deg, 
+                rgba(255, 68, 68, 0.2) 0%, 
+                rgba(204, 0, 0, 0.15) 50%, 
+                rgba(150, 0, 0, 0.1) 100%);
+            border: 2px solid rgba(255, 68, 68, 0.3);
+            box-shadow: 
+                0 15px 35px rgba(200, 50, 50, 0.4),
+                inset 0 1px 0 rgba(255, 68, 68, 0.3),
+                0 0 50px rgba(255, 68, 68, 0.2);
+        }
+
+        .flashcard.volcanic {
+            background: linear-gradient(145deg, 
+                rgba(255, 107, 53, 0.2) 0%, 
+                rgba(255, 69, 0, 0.15) 50%, 
+                rgba(200, 50, 0, 0.1) 100%);
+            border: 2px solid rgba(255, 107, 53, 0.3);
+            box-shadow: 
+                0 15px 35px rgba(200, 80, 30, 0.4),
+                inset 0 1px 0 rgba(255, 107, 53, 0.3),
+                0 0 50px rgba(255, 107, 53, 0.2);
+        }
+
+        .flashcard:hover {
+            transform: translateY(-20px) scale(1.05) rotateX(5deg) rotateY(5deg);
+            box-shadow: 
+                0 35px 60px rgba(0, 0, 0, 0.4),
+                0 0 80px rgba(255, 107, 53, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .flashcard.cyclone:hover {
+            box-shadow: 
+                0 35px 60px rgba(0, 150, 200, 0.5),
+                0 0 80px rgba(0, 212, 255, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .flashcard.hurricane:hover {
+            box-shadow: 
+                0 35px 60px rgba(200, 50, 50, 0.5),
+                0 0 80px rgba(255, 68, 68, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .flashcard.volcanic:hover {
+            box-shadow: 
+                0 35px 60px rgba(200, 80, 30, 0.5),
+                0 0 80px rgba(255, 107, 53, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .flashcard-image {
+            width: 100%;
+            height: 200px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cyclone-img {
+            background: radial-gradient(circle, #00d4ff, #0066cc);
+            position: relative;
+        }
+
+        .cyclone-img:before {
+            content: '🌀';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            animation: spin 4s linear infinite;
+        }
+
+        .hurricane-img {
+            background: radial-gradient(circle, #ff4444, #990000);
+            position: relative;
+        }
+
+        .hurricane-img:before {
+            content: '🌪️';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            animation: shake 2s ease-in-out infinite;
+        }
+
+        .volcanic-img {
+            background: radial-gradient(circle, #ff6b35, #cc3300);
+            position: relative;
+        }
+
+        .volcanic-img:before {
+            content: '🌋';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translate(-50%, -50%) translateX(0); }
+            25% { transform: translate(-50%, -50%) translateX(-5px); }
+            75% { transform: translate(-50%, -50%) translateX(5px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        .flashcard h3 {
+            color: #ffffff;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .flashcard p {
+            color: #cccccc;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        /* App Benefits Section */
+        .benefits-section {
+            padding: 80px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 10;
+        }
+
+        .benefits-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .benefits-title {
+            font-size: 2.5rem;
+            color: #ff6b35;
+            margin-bottom: 30px;
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .benefits-text {
+            color: #ffffff;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-bottom: 40px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .feature-item {
+            background: rgba(255, 107, 53, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            background: rgba(255, 107, 53, 0.2);
+            transform: translateY(-5px);
+        }
+
+        /* Report Section */
+        .report-section {
+            padding: 80px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .report-button {
+            background: linear-gradient(45deg, #ff4444, #ff6b35);
+            color: white;
+            padding: 20px 40px;
+            font-size: 1.3rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(255, 68, 68, 0.4);
+            animation: buttonFloat 3s ease-in-out infinite;
+        }
+
+        .report-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(255, 68, 68, 0.6);
+        }
+
+        @keyframes buttonFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Help Section */
+        .help-section {
+            padding: 80px 20px;
+            background: rgba(255, 107, 53, 0.1);
+            backdrop-filter: blur(15px);
+            position: relative;
+            z-index: 10;
+        }
+
+        .help-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .emergency-numbers {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .emergency-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 107, 53, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .emergency-item:hover {
+            background: rgba(255, 107, 53, 0.2);
+            transform: scale(1.05);
+            border-color: #ff6b35;
+        }
+
+        /* Chatbot Section */
+        .chatbot-section {
+            padding: 80px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        .chatbot-container {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 2px solid rgba(255, 107, 53, 0.3);
+        }
+
+        .chat-messages {
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid rgba(255, 107, 53, 0.5);
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+        }
+
+        .chat-input::placeholder {
+            color: #cccccc;
+        }
+
+        .chat-send {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chat-send:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.4);
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 80%;
+        }
+
+        .user-message {
+            background: rgba(255, 107, 53, 0.3);
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .bot-message {
+            background: rgba(255, 255, 255, 0.1);
+            margin-right: auto;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 3rem;
+            }
+            
+            .flashcards-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .chat-input-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Toggle Button -->
+    <button class="menu-toggle" id="menuToggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <!-- Vertical Menu -->
+    <nav class="vertical-menu" id="verticalMenu">
+        <div class="menu-header">
+            <div class="menu-title">Disaster Manager</div>
+            <div class="menu-subtitle">Navigation Menu</div>
+        </div>
+        <div class="menu-items">
+            <a href="#" class="menu-item">
+                <span class="menu-icon">👤</span>
+                Login
+            </a>
+            <a href="#" class="menu-item">
+                <span class="menu-icon">📝</span>
+                Sign Up
+            </a>
+            <a href="#" class="menu-item">
+                <span class="menu-icon">🌀</span>
+                Cyclone
+            </a>
+            <a href="#" class="menu-item">
+                <span class="menu-icon">🌪️</span>
+                Hurricane
+            </a>
+            <a href="#" class="menu-item">
+                <span class="menu-icon">🌋</span>
+                Volcano
+            </a>
+            <a href="#" class="menu-item">
+                <span class="menu-icon">🚨</span>
+                Report
+            </a>
+            <a href="#" class="menu-item">
+                <span class="menu-icon">🆘</span>
+                Emergency
+            </a>
+        </div>
+    </nav>
+
+    <!-- Floating Elements -->
+    <div class="floating-elements">
+        <div class="satellite"></div>
+        <div class="satellite"></div>
+        <div class="satellite"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="star"></div>
+        <div class="floating-orb orb1"></div>
+        <div class="floating-orb orb2"></div>
+        <div class="floating-orb orb3"></div>
+        <div class="floating-orb orb4"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <h1 class="main-title">DISASTER MANAGER</h1>
+        <p class="subtitle">Advanced AI-Powered Disaster Detection & Emergency Response System</p>
+    </header>
+
+    <!-- Flashcards Section -->
+    <section class="flashcards-section">
+        <h2 class="section-title">Detection Capabilities</h2>
+        <div class="flashcards-container">
+            <div class="flashcard cyclone">
+                <div class="flashcard-image cyclone-img"></div>
+                <h3>Cyclone Detection</h3>
+                <p>Advanced satellite imagery analysis and meteorological data processing to detect and track cyclonic formations. Real-time monitoring of wind patterns, pressure systems, and atmospheric conditions for early warning systems.</p>
+            </div>
+            
+            <div class="flashcard hurricane">
+                <div class="flashcard-image hurricane-img"></div>
+                <h3>Hurricane & Flood Detection</h3>
+                <p>Comprehensive monitoring of tropical storm systems and flood-prone areas using AI-powered prediction models. Integration of rainfall data, river levels, and topographical analysis for accurate flood forecasting.</p>
+            </div>
+            
+            <div class="flashcard volcanic">
+                <div class="flashcard-image volcanic-img"></div>
+                <h3>Volcanic Eruption Detection</h3>
+                <p>Seismic activity monitoring and thermal imaging analysis to predict volcanic eruptions. Ground deformation tracking and gas emission detection for comprehensive volcanic hazard assessment.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="benefits-section">
+        <div class="benefits-content">
+            <h2 class="benefits-title">Why Choose Disaster Manager?</h2>
+            <p class="benefits-text">
+                Our cutting-edge disaster management system combines artificial intelligence, satellite technology, and real-time data analysis to provide the most accurate and timely disaster predictions. Save lives and minimize damage with our comprehensive early warning system.
+            </p>
+            <div class="feature-grid">
+                <div class="feature-item">
+                    <h4 style="color: #ff6b35; margin-bottom: 10px;">🛰️ Satellite Integration</h4>
+                    <p style="color: #ffffff;">Real-time satellite data processing</p>
+                </div>
+                <div class="feature-item">
+                    <h4 style="color: #ff6b35; margin-bottom: 10px;">🤖 AI-Powered</h4>
+                    <p style="color: #ffffff;">Machine learning algorithms</p>
+                </div>
+                <div class="feature-item">
+                    <h4 style="color: #ff6b35; margin-bottom: 10px;">⚡ Real-time Alerts</h4>
+                    <p style="color: #ffffff;">Instant emergency notifications</p>
+                </div>
+                <div class="feature-item">
+                    <h4 style="color: #ff6b35; margin-bottom: 10px;">🌍 Global Coverage</h4>
+                    <p style="color: #ffffff;">Worldwide disaster monitoring</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Report Section -->
+    <section class="report-section">
+        <h2 class="section-title">Report a Disaster</h2>
+        <p style="color: #ffffff; margin-bottom: 30px; font-size: 1.1rem;">
+            Witnessed a disaster? Help us help others by reporting it immediately.
+        </p>
+        <button class="report-button" onclick="reportDisaster()">
+            🚨 REPORT DISASTER
+        </button>
+    </section>
+
+    <!-- Help Section -->
+    <section class="help-section">
+        <div class="help-content">
+            <h2 class="section-title">Emergency Help</h2>
+            <p style="color: #ffffff; margin-bottom: 30px; font-size: 1.1rem;">
+                Need immediate assistance? Contact these emergency numbers for help.
+            </p>
+            <div class="emergency-numbers">
+                <div class="emergency-item">
+                    <h4 style="color: #ff6b35; margin-bottom: 10px;">🚨 Emergency Services</h4>
+                    <p style="color: #ffffff; font-size: 1.2rem; font-weight: bold;">911</p>
+                </div>
+                <div class="emergency-item">
+                    <h4 style="color: #ff6b35; margin-bottom: 10px;">🏥 Medical Emergency</h4>
+                    <p style="color: #ffffff; font-size: 1.2rem; font-weight: bold;">108</p>
+                </div>
+                <div class="emergency-item">
+                    <h4 style="color: #ff6b35; margin-bottom: 10px;">🚒 Fire Department</h4>
+                    <p style="color: #ffffff; font-size: 1.2rem; font-weight: bold;">101</p>
+                </div>
+                <div class="emergency-item">
+                    <h4 style="color: #ff6b35; margin-bottom: 10px;">👮 Police</h4>
+                    <p style="color: #ffffff; font-size: 1.2rem; font-weight: bold;">100</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chatbot Section -->
+    <section class="chatbot-section">
+        <h2 class="section-title">AI Assistant</h2>
+        <div class="chatbot-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message bot-message">
+                    <strong style="color: #ff6b35;">DisasterBot:</strong> Hello! I'm here to help you with disaster-related queries. Ask me anything about emergency preparedness, evacuation procedures, or disaster types.
+                </div>
+            </div>
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Ask me about disasters, safety measures, or emergency procedures...">
+                <button class="chat-send" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Menu toggle functionality
+        function toggleMenu() {
+            const menu = document.getElementById('verticalMenu');
+            const toggle = document.getElementById('menuToggle');
+            
+            menu.classList.toggle('active');
+            toggle.classList.toggle('active');
+        }
+        
+        document.getElementById('menuToggle').addEventListener('click', toggleMenu);
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('verticalMenu');
+            const toggle = document.getElementById('menuToggle');
+            
+            if (!menu.contains(e.target) && !toggle.contains(e.target)) {
+                if (menu.classList.contains('active')) {
+                    toggleMenu();
+                }
+            }
+        });
+        
+        // Chatbot functionality
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const messages = document.getElementById('chatMessages');
+            const message = input.value.trim();
+            
+            if (message) {
+                // Add user message
+                const userMsg = document.createElement('div');
+                userMsg.className = 'message user-message';
+                userMsg.innerHTML = `<strong style="color: #ff6b35;">You:</strong> ${message}`;
+                messages.appendChild(userMsg);
+                
+                // Simulate bot response
+                setTimeout(() => {
+                    const botMsg = document.createElement('div');
+                    botMsg.className = 'message bot-message';
+                    botMsg.innerHTML = `<strong style="color: #ff6b35;">DisasterBot:</strong> ${getBotResponse(message)}`;
+                    messages.appendChild(botMsg);
+                    messages.scrollTop = messages.scrollHeight;
+                }, 1000);
+                
+                input.value = '';
+                messages.scrollTop = messages.scrollHeight;
+            }
+        }
+        
+        function getBotResponse(message) {
+            const responses = [
+                "I am currently learning dumbo, wait to me to learn and then I'll tell u mf"
+            ];
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+        
+        // Enter key support for chat
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Report disaster function
+        function reportDisaster() {
+            alert('🚨 Disaster report feature activated! In a real emergency, this would connect you to emergency services.');
+        }
+        
+        // Add dynamic mouse tracking effect
+        document.addEventListener('mousemove', function(e) {
+            const cursor = document.querySelector('.cursor-trail');
+            if (!cursor) {
+                const trail = document.createElement('div');
+                trail.className = 'cursor-trail';
+                trail.style.cssText = `
+                    position: fixed;
+                    width: 20px;
+                    height: 20px;
+                    background: radial-gradient(circle, rgba(255, 107, 53, 0.6), transparent);
+                    border-radius: 50%;
+                    pointer-events: none;
+                    z-index: 9999;
+                    transition: all 0.1s ease;
+                `;
+                document.body.appendChild(trail);
+            }
+            
+            const trail = document.querySelector('.cursor-trail');
+            trail.style.left = e.clientX - 10 + 'px';
+            trail.style.top = e.clientY - 10 + 'px';
+        });
+        
+        // Add scroll-triggered animations
+        function animateOnScroll() {
+            const elements = document.querySelectorAll('.flashcard, .benefits-section, .report-section');
+            elements.forEach(el => {
+                const rect = el.getBoundingClientRect();
+                if (rect.top < window.innerHeight * 0.8) {
+                    el.style.animation = 'fadeInUp 0.8s ease-out forwards';
+                }
+            });
+        }
+        
+        window.addEventListener('scroll', animateOnScroll);
+        animateOnScroll(); // Run once on load
+    </script>
+</body>
+</html>
