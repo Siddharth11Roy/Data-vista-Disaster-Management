@@ -1,1 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌋 Volcano Eruption Detector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: 'Arial', sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a0000 0%, #4a0e0e 25%, #8b1538 50%, #2d1b69 75%, #0f0f23 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: radial-gradient(circle, #ff6b35, #ff4757);
+            border-radius: 50%;
+            animation: float 6s infinite ease-in-out;
+            box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) scale(1); }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .title {
+            font-size: 3.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b35, #ff4757, #c44569, #6c5ce7);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: textGlow 3s ease-in-out infinite alternate;
+            text-shadow: 0 0 30px rgba(255, 107, 53, 0.3);
+            margin-bottom: 1rem;
+        }
+
+        @keyframes textGlow {
+            0% { filter: brightness(1) drop-shadow(0 0 20px rgba(255, 107, 53, 0.5)); }
+            100% { filter: brightness(1.2) drop-shadow(0 0 30px rgba(255, 107, 53, 0.8)); }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #ff9ff3;
+            opacity: 0.9;
+            margin-bottom: 2rem;
+        }
+
+        .upload-section {
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 107, 53, 0.3);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 107, 53, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .upload-section:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 107, 53, 0.6);
+            box-shadow: 0 25px 50px rgba(255, 107, 53, 0.2);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px dashed rgba(255, 107, 53, 0.4);
+            font-size: 1.1rem;
+            font-weight: 500;
+            min-height: 250px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .file-label:hover {
+            background: rgba(255, 107, 53, 0.1);
+            border-color: rgba(255, 107, 53, 0.7);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(255, 107, 53, 0.2);
+        }
+
+        .file-label.drag-over {
+            background: rgba(255, 107, 53, 0.2);
+            border-color: #ff6b35;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+
+        .upload-text {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+
+        .upload-subtext {
+            font-size: 1rem;
+            opacity: 0.7;
+        }
+
+        .classify-btn {
+            width: 100%;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .classify-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.5s ease;
+        }
+
+        .classify-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .classify-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(108, 92, 231, 0.4);
+        }
+
+        .classify-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-section {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 2px solid rgba(199, 0, 57, 0.3);
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .result-section.processing {
+            border-color: rgba(255, 107, 53, 0.6);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 107, 53, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0); }
+        }
+
+        .result-section.success {
+            border-color: rgba(0, 184, 148, 0.6);
+            background: rgba(0, 184, 148, 0.1);
+        }
+
+        .result-section.error {
+            border-color: rgba(255, 71, 87, 0.6);
+            background: rgba(255, 71, 87, 0.1);
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 107, 53, 0.3);
+            border-top: 4px solid #ff6b35;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .volcano-icon {
+            font-size: 4rem;
+            animation: bounce 2s infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .file-preview {
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .file-preview img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 10px;
+            border: 2px solid rgba(255, 107, 53, 0.3);
+        }
+
+        .prediction-result {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+
+        .prediction-result.eruption {
+            background: linear-gradient(135deg, #ff4757, #ff6b35);
+            color: white;
+            animation: alertPulse 1s infinite;
+        }
+
+        .prediction-result.no-eruption {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+        }
+
+        @keyframes alertPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @media (max-width: 768px) {
+            .title { font-size: 2.5rem; }
+            .container { padding: 1rem; }
+            .upload-section { padding: 1.5rem; }
+        }
+    </style>
+    <script type="module">
+        import { Client, handle_file } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+
+        document.addEventListener("DOMContentLoaded", async function () {
+            const classifyBtn = document.getElementById("classifyBtn");
+            const fileInput = document.getElementById("fileInput");
+            const resultDiv = document.getElementById("result");
+            const fileLabel = document.getElementById("fileLabel");
+            const filePreview = document.getElementById("filePreview");
+
+            // Create floating particles
+            createFloatingParticles();
+
+            // File input change handler
+            fileInput.addEventListener("change", function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    fileLabel.innerHTML = `
+                        <div class="upload-icon">✅</div>
+                        <div class="upload-text">${file.name}</div>
+                        <div class="upload-subtext">File selected successfully</div>
+                    `;
+                    
+                    // Show image preview
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        filePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    fileLabel.innerHTML = `
+                        <div class="upload-icon">🌋</div>
+                        <div class="upload-text">Drop your volcano image here</div>
+                        <div class="upload-subtext">or click to browse files</div>
+                    `;
+                    filePreview.innerHTML = "";
+                }
+            });
+
+            // Drag and drop functionality
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                fileLabel.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                fileLabel.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                fileLabel.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight(e) {
+                fileLabel.classList.add('drag-over');
+            }
+
+            function unhighlight(e) {
+                fileLabel.classList.remove('drag-over');
+            }
+
+            fileLabel.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length > 0) {
+                    const file = files[0];
+                    
+                    // Create a new FileList-like object
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    fileInput.files = dataTransfer.files;
+                    
+                    // Trigger change event
+                    const changeEvent = new Event('change', { bubbles: true });
+                    fileInput.dispatchEvent(changeEvent);
+                }
+            }
+
+            classifyBtn.addEventListener("click", async () => {
+                if (!fileInput.files.length) {
+                    showResult("⚠️ Please upload an image first!", "error");
+                    return;
+                }
+                
+                const file = fileInput.files[0];
+                showProcessing();
+                classifyBtn.disabled = true;
+                
+                try {
+                    const client = await Client.connect("Sid26Roy/volcano_eff");
+                    const prediction = await client.predict("/predict", [handle_file(file)]);
+                    
+                    // Format the prediction result
+                    const result = prediction.data;
+                    const isEruption = result.toString().toLowerCase().includes('eruption') || 
+                                     result.toString().toLowerCase().includes('active') ||
+                                     result.toString().toLowerCase().includes('danger');
+                    
+                    showResult(result, "success", isEruption);
+                } catch (error) {
+                    showResult(`❌ Error: ${error.message}`, "error");
+                } finally {
+                    classifyBtn.disabled = false;
+                }
+            });
+
+            function showProcessing() {
+                resultDiv.className = "result-section processing";
+                resultDiv.innerHTML = `
+                    <div class="loading-spinner"></div>
+                    <span>🔍 Analyzing volcanic activity...</span>
+                `;
+            }
+
+            function showResult(message, type, isEruption = false) {
+                resultDiv.className = `result-section ${type}`;
+                
+                if (type === "success") {
+                    const predictionClass = isEruption ? "eruption" : "no-eruption";
+                    const icon = isEruption ? "🌋💥" : "🌋✅";
+                    resultDiv.innerHTML = `
+                        <div>
+                            <div style="font-size: 2rem; margin-bottom: 1rem;">${icon}</div>
+                            <div class="prediction-result ${predictionClass}">
+                                Prediction: ${message}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<span>${message}</span>`;
+                }
+            }
+
+            function createFloatingParticles() {
+                const particleContainer = document.querySelector('.floating-particles');
+                
+                for (let i = 0; i < 20; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.animationDelay = Math.random() * 6 + 's';
+                    particle.style.animationDuration = (Math.random() * 3 + 4) + 's';
+                    particleContainer.appendChild(particle);
+                }
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="floating-particles"></div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="volcano-icon">🌋</div>
+            <h1 class="title">Volcano Eruption Detector</h1>
+            <p class="subtitle">Advanced AI-powered volcanic activity analysis</p>
+        </div>
+
+        <div class="upload-section">
+            <div class="file-input-wrapper">
+                <input type="file" id="fileInput" class="file-input" accept="image/*">
+                <label for="fileInput" id="fileLabel" class="file-label">
+                    <div class="upload-icon">🌋</div>
+                    <div class="upload-text">Drop your volcano image here</div>
+                    <div class="upload-subtext">or click to browse files</div>
+                </label>
+                <div id="filePreview" class="file-preview"></div>
+            </div>
+            
+            <button id="classifyBtn" class="classify-btn">
+                <span>🔍 Analyze Volcanic Activity</span>
+            </button>
+        </div>
+
+        <div id="result" class="result-section">
+            <span>🔮 Upload an image to begin volcanic analysis</span>
+        </div>
+    </div>
+</body>
+</html>
