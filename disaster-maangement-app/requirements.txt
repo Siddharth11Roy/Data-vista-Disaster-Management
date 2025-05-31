@@ -1,6 +1,10 @@
-Flask==2.3.2
-Flask-SQLAlchemy==3.1.1
-Werkzeug==2.3.7
-requests==2.31.0           # For calling Gradio API
-python-dotenv==1.0.1       # For environment variables (optional but recommended)
-Pillow==10.2.0             # For image handling (optional, if needed)
+Flask
+Werkzeug==2.3.7          
+Pillow==10.2.0             
+Flask-Cors
+Flask-SQLAlchemy
+Flask-JWT-Extended
+Flask-Mail
+gunicorn
+python-dotenv
+requests
