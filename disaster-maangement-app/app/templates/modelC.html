@@ -1,1 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ocean Cyclone Predictor</title>
+    <script type="module">
+        import { Client, handle_file } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
 
+        document.addEventListener("DOMContentLoaded", async function () {
+            const classifyBtn = document.getElementById("classifyBtn");
+            const fileInput = document.getElementById("fileInput");
+            const resultDiv = document.getElementById("result");
+            const uploadArea = document.getElementById("uploadArea");
+            const previewImg = document.getElementById("previewImg");
+            const fileName = document.getElementById("fileName");
+
+            // File upload area interactions
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('drag-over');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileSelect(files[0]);
+                }
+            });
+
+            uploadArea.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleFileSelect(e.target.files[0]);
+                }
+            });
+
+            function handleFileSelect(file) {
+                fileName.textContent = file.name;
+                uploadArea.classList.add('file-selected');
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImg.src = e.target.result;
+                    previewImg.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+
+            classifyBtn.addEventListener("click", async () => {
+                if (!fileInput.files.length) {
+                    showNotification("Please upload an image first!", "error");
+                    return;
+                }
+                
+                const file = fileInput.files[0];
+                resultDiv.innerHTML = "";
+                classifyBtn.disabled = true;
+                classifyBtn.innerHTML = '<div class="spinner"></div>Analyzing...';
+                
+                try {
+                    const client = await Client.connect("Sid26Roy/cycolne_prediction");
+                    const prediction = await client.predict("/predict", [handle_file(file)]);
+                    
+                    displayResult(prediction.data);
+                    showNotification("Analysis complete!", "success");
+                } catch (error) {
+                    resultDiv.innerHTML = `<div class="error-message">
+                        <div class="error-icon">⚠</div>
+                        <div>Error: ${error.message}</div>
+                    </div>`;
+                    showNotification("Analysis failed. Please try again.", "error");
+                } finally {
+                    classifyBtn.disabled = false;
+                    classifyBtn.innerHTML = 'Analyze Cyclone';
+                }
+            });
+
+            function displayResult(data) {
+                resultDiv.innerHTML = `
+                    <div class="result-card">
+                        <div class="result-header">
+                            <div class="cyclone-icon">🌀</div>
+                            <h3>Prediction Result</h3>
+                        </div>
+                        <div class="result-content">
+                            <div class="prediction-text">${data}</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function showNotification(message, type) {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.classList.add('show');
+                }, 100);
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        document.body.removeChild(notification);
+                    }, 300);
+                }, 3000);
+            }
+
+            // Animated background effects
+            createFloatingBubbles();
+            createWaveEffect();
+        });
+
+        function createFloatingBubbles() {
+            const container = document.querySelector('.bubble-container');
+            for (let i = 0; i < 20; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                bubble.style.left = Math.random() * 100 + '%';
+                bubble.style.animationDelay = Math.random() * 4 + 's';
+                bubble.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                container.appendChild(bubble);
+            }
+        }
+
+        function createWaveEffect() {
+            const waves = document.querySelector('.waves');
+            for (let i = 0; i < 3; i++) {
+                const wave = document.createElement('div');
+                wave.className = 'wave';
+                wave.style.animationDelay = i * 0.5 + 's';
+                waves.appendChild(wave);
+            }
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0f0f3a 0%, #1a1a5c 25%, #2d1b69 50%, #4a1a5c 75%, #0a0a2e 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .ocean-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.2) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
+        }
+
+        .bubble-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .bubble {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, rgba(120, 219, 255, 0.1) 100%);
+            border-radius: 50%;
+            animation: float 3s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) scale(1); }
+        }
+
+        .waves {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100px;
+            z-index: -1;
+        }
+
+        .wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 100px;
+            background: linear-gradient(90deg, transparent, rgba(120, 219, 255, 0.1), transparent);
+            border-radius: 50% 50% 0 0;
+            animation: wave 6s infinite linear;
+        }
+
+        @keyframes wave {
+            0% { transform: translateX(-50%) rotate(0deg); }
+            100% { transform: translateX(-50%) rotate(360deg); }
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .title {
+            font-size: 3.5rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #00d4ff, #ff6ec7, #7c77c6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.5)); }
+            to { filter: drop-shadow(0 0 20px rgba(255, 110, 199, 0.8)); }
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .main-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeInUp 1s ease-out 0.3s both;
+            margin-bottom: 30px;
+        }
+
+        .upload-area {
+            border: 3px dashed rgba(0, 212, 255, 0.5);
+            border-radius: 20px;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0, 212, 255, 0.05);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(0, 212, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+            opacity: 0;
+        }
+
+        .upload-area:hover::before {
+            opacity: 1;
+            animation: shimmer 1.5s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        .upload-area:hover {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 212, 255, 0.3);
+        }
+
+        .upload-area.drag-over {
+            border-color: #ff6ec7;
+            background: rgba(255, 110, 199, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-area.file-selected {
+            border-color: #7c77c6;
+            background: rgba(124, 119, 198, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #00d4ff;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .upload-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .upload-hint {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 1rem;
+        }
+
+        .file-name {
+            color: #00d4ff;
+            font-weight: bold;
+            margin-top: 15px;
+            font-size: 1.1rem;
+        }
+
+        .preview-img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 15px;
+            margin-top: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .analyze-btn {
+            width: 100%;
+            padding: 20px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            background: linear-gradient(45deg, #00d4ff, #7c77c6, #ff6ec7);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .analyze-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: all 0.5s ease;
+        }
+
+        .analyze-btn:hover::before {
+            left: 100%;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 212, 255, 0.4);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideInUp 0.5s ease-out;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .cyclone-icon {
+            font-size: 2.5rem;
+            margin-right: 15px;
+            animation: rotate 3s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-header h3 {
+            color: #00d4ff;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .prediction-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+            line-height: 1.6;
+            background: rgba(0, 212, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 4px solid #00d4ff;
+        }
+
+        .error-message {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            color: #ff6b6b;
+            display: flex;
+            align-items: center;
+        }
+
+        .error-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.success {
+            background: linear-gradient(45deg, #00d4ff, #7c77c6);
+        }
+
+        .notification.error {
+            background: linear-gradient(45deg, #ff6b6b, #ff6ec7);
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2.5rem;
+            }
+            
+            .main-card {
+                padding: 25px;
+                margin: 20px;
+            }
+            
+            .upload-area {
+                padding: 40px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ocean-background"></div>
+    <div class="bubble-container"></div>
+    <div class="waves"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1 class="title">🌊 Cyclone Predictor</h1>
+            <p class="subtitle">Harness the power of AI to analyze cyclone patterns from satellite imagery</p>
+        </div>
+        
+        <div class="main-card">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📡</div>
+                <div class="upload-text">Drop your satellite image here</div>
+                <div class="upload-hint">or click to browse files</div>
+                <div class="file-name" id="fileName"></div>
+                <img id="previewImg" class="preview-img hidden" alt="Preview">
+            </div>
+            
+            <input type="file" id="fileInput" class="hidden" accept="image/*">
+            
+            <button class="analyze-btn" id="classifyBtn">
+                Analyze Cyclone
+            </button>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+</body>
+</html>
