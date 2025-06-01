@@ -405,7 +405,7 @@
                     const prediction = await client.predict("/predict", [handle_file(file)]);
                     
                     // Add some visual flair to the result
-                    const resultText = prediction.data;
+                    const resultText = String(prediction.data || prediction || 'Unknown result');
                     let emoji = '🌊';
                     
                     if (resultText.toLowerCase().includes('damage')) {
