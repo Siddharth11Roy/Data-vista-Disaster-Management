@@ -2,33 +2,468 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Disaster Reporting Form</title>
+    <title>Cosmic Disaster Reporting Station</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a0033 0%, #330066 25%, #000000 75%, #1a0033 100%);
+            font-family: 'Arial', sans-serif;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated background stars */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 2s infinite alternate;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.3; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Floating sprinkles */
+        .sprinkles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .sprinkle {
+            position: absolute;
+            width: 3px;
+            height: 8px;
+            background: linear-gradient(45deg, #ff6b9d, #c44569, #f8b500, #3c6382);
+            border-radius: 2px;
+            animation: float 6s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Main container */
+        .container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Floating form */
+        .form-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            animation: float-form 6s ease-in-out infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes float-form {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-10px) rotate(0.5deg); }
+            66% { transform: translateY(5px) rotate(-0.5deg); }
+        }
+
+        /* Glowing border effect */
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            /* background: linear-gradient(45deg, #ff6b9d, #c44569, #f8b500, #3c6382, #ff6b9d); */
+            background: (45deg, red);
+            border-radius: 22px;
+            z-index: -1;
+            animation: glow-rotate 3s linear infinite;
+        }
+
+        @keyframes glow-rotate {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
+        h1 {
+            text-align: center;
+            color: #ffffff;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            animation: title-glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes title-glow {
+            0% { text-shadow: 0 0 20px rgba(255, 255, 255, 0.5); }
+            100% { text-shadow: 0 0 30px rgba(255, 107, 157, 0.8), 0 0 40px rgba(255, 107, 157, 0.4); }
+        }
+
+        label {
+            color: #ffffff;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-size: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.25);
+            border-color: #ff6b9d;
+            box-shadow: 0 0 20px rgba(255, 107, 157, 0.4);
+            transform: scale(1.02);
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        select option {
+            background: #330066;
+            color: white;
+        }
+
+        .submit-btn {
+            background: linear-gradient(45deg, #ff6b9d, #c44569);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(255, 107, 157, 0.4);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 10px 25px rgba(255, 107, 157, 0.4); }
+            50% { box-shadow: 0 15px 35px rgba(255, 107, 157, 0.7); }
+            100% { box-shadow: 0 10px 25px rgba(255, 107, 157, 0.4); }
+        }
+
+        /* Fizzy bubble effect */
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            animation: bubble-rise 4s infinite linear;
+            pointer-events: none;
+        }
+
+        @keyframes bubble-rise {
+            0% {
+                bottom: -10px;
+                opacity: 0;
+                transform: translateX(0) scale(0);
+            }
+            10% {
+                opacity: 1;
+                transform: scale(0.5);
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                bottom: 100%;
+                opacity: 0;
+                transform: translateX(100px) scale(1);
+            }
+        }
+
+        /* Interactive hover effects */
+        .form-field {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .form-field:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Success message */
+        .success-message {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.5);
+            color: #4CAF50;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 <body>
-    <h1>Report a Disaster</h1>
-    <form method="POST">
-        <label for="name">Your Name:</label><br>
-        <input type="text" name="name" required><br><br>
+    <!-- Animated stars background -->
+    <div class="stars" id="stars"></div>
+    
+    <!-- Floating sprinkles -->
+    <div class="sprinkles" id="sprinkles"></div>
 
-        <label for="email">Email:</label><br>
-        <input type="email" name="email" required><br><br>
+    <div class="container">
+        <div class="form-container">
+            <h1>🚀 Cosmic Disaster Report 🌌</h1>
+            
+            <div class="success-message" id="successMessage">
+                ✨ Your cosmic report has been transmitted to the galactic emergency center! ✨
+            </div>
 
-        <label for="location">Location:</label><br>
-        <input type="text" name="location" required><br><br>
+            <form method="POST" id="disasterForm">
+                <div class="form-field">
+                    <label for="name">🧑‍🚀 Space Agent Name:</label>
+                    <input type="text" name="name" id="name" placeholder="Enter your cosmic identity..." required>
+                </div>
 
-        <label for="disaster_type">Type of Disaster:</label><br>
-        <select name="disaster_type" required>
-            <option value="Flood">Flood</option>
-            <option value="Earthquake">Earthquake</option>
-            <option value="Fire">Fire</option>
-            <option value="Storm">Storm</option>
-            <option value="Other">Other</option>
-        </select><br><br>
+                <div class="form-field">
+                    <label for="email">📡 Communication Channel:</label>
+                    <input type="email" name="email" id="email" placeholder="your@cosmic.email" required>
+                </div>
 
-        <label for="description">Description (optional):</label><br>
-        <textarea name="description" rows="4" cols="50"></textarea><br><br>
+                <div class="form-field">
+                    <label for="location">🌍 Galactic Coordinates:</label>
+                    <input type="text" name="location" id="location" placeholder="Planet, Galaxy, Dimension..." required>
+                </div>
 
-        <input type="submit" value="Submit Report">
-    </form>
+                <div class="form-field">
+                    <label for="disaster_type">⚡ Type of Cosmic Event:</label>
+                    <select name="disaster_type" id="disaster_type" required>
+                        <option value="">Select cosmic disaster...</option>
+                        <option value="Flood">🌊 Flood</option>
+                        <option value="Earthquake">🌍 Earthquake</option>
+                        <option value="Fire">🔥 Fire</option>
+                        <option value="Storm">⛈️ Storm</option>
+                        <option value="Other">🌌 Other Cosmic Event</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="description">📝 Mission Report:</label>
+                    <textarea name="description" id="description" rows="4" placeholder="Describe the cosmic phenomenon in detail..."></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    🚀 Transmit to Galactic Command 🚀
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Create animated stars
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            const numberOfStars = 100;
+
+            for (let i = 0; i < numberOfStars; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.width = `${Math.random() * 3 + 1}px`;
+                star.style.height = star.style.width;
+                star.style.animationDelay = `${Math.random() * 2}s`;
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Create floating sprinkles
+        function createSprinkles() {
+            const sprinklesContainer = document.getElementById('sprinkles');
+            
+            setInterval(() => {
+                const sprinkle = document.createElement('div');
+                sprinkle.className = 'sprinkle';
+                sprinkle.style.left = `${Math.random() * 100}%`;
+                sprinkle.style.animationDelay = `${Math.random() * 2}s`;
+                sprinkle.style.background = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                sprinklesContainer.appendChild(sprinkle);
+
+                // Remove sprinkle after animation
+                setTimeout(() => {
+                    sprinkle.remove();
+                }, 6000);
+            }, 300);
+        }
+
+        // Create fizzy bubbles
+        function createBubbles() {
+            const formContainer = document.querySelector('.form-container');
+            
+            setInterval(() => {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                bubble.style.left = `${Math.random() * 100}%`;
+                bubble.style.width = `${Math.random() * 20 + 5}px`;
+                bubble.style.height = bubble.style.width;
+                bubble.style.animationDelay = `${Math.random() * 2}s`;
+                formContainer.appendChild(bubble);
+
+                // Remove bubble after animation
+                setTimeout(() => {
+                    bubble.remove();
+                }, 4000);
+            }, 500);
+        }
+
+        // Add interactive sound effects (visual feedback)
+        function addInteractiveEffects() {
+            const inputs = document.querySelectorAll('input, select, textarea');
+            
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.style.boxShadow = '0 0 25px rgba(255, 107, 157, 0.6)';
+                });
+
+                input.addEventListener('blur', function() {
+                    this.style.boxShadow = '';
+                });
+
+                input.addEventListener('input', function() {
+                    // Create mini explosion effect
+                    const rect = this.getBoundingClientRect();
+                    for (let i = 0; i < 3; i++) {
+                        setTimeout(() => {
+                            const spark = document.createElement('div');
+                            spark.style.position = 'fixed';
+                            spark.style.left = `${rect.right - 20}px`;
+                            spark.style.top = `${rect.top + 10}px`;
+                            spark.style.width = '4px';
+                            spark.style.height = '4px';
+                            spark.style.background = '#ff6b9d';
+                            spark.style.borderRadius = '50%';
+                            spark.style.pointerEvents = 'none';
+                            spark.style.zIndex = '1000';
+                            spark.style.animation = 'sparkle 0.5s ease-out forwards';
+                            document.body.appendChild(spark);
+
+                            setTimeout(() => spark.remove(), 500);
+                        }, i * 100);
+                    }
+                });
+            });
+        }
+
+        // Handle form submission
+        document.getElementById('disasterForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show success message
+            const successMessage = document.getElementById('successMessage');
+            successMessage.style.display = 'block';
+            
+            // Create celebration effect
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const celebration = document.createElement('div');
+                    celebration.style.position = 'fixed';
+                    celebration.style.left = `${Math.random() * 100}%`;
+                    celebration.style.top = '50%';
+                    celebration.style.width = '6px';
+                    celebration.style.height = '6px';
+                    celebration.style.background = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                    celebration.style.borderRadius = '50%';
+                    celebration.style.pointerEvents = 'none';
+                    celebration.style.zIndex = '1000';
+                    celebration.style.animation = 'celebration 2s ease-out forwards';
+                    document.body.appendChild(celebration);
+
+                    setTimeout(() => celebration.remove(), 2000);
+                }, i * 50);
+            }
+
+            // Reset form after delay
+            setTimeout(() => {
+                this.reset();
+                successMessage.style.display = 'none';
+            }, 3000);
+        });
+
+        // Add celebration keyframes
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes sparkle {
+                0% { transform: scale(0) rotate(0deg); opacity: 1; }
+                100% { transform: scale(2) rotate(180deg) translateY(-20px); opacity: 0; }
+            }
+            @keyframes celebration {
+                0% { transform: scale(0) translateY(0); opacity: 1; }
+                50% { transform: scale(1) translateY(-100px); opacity: 1; }
+                100% { transform: scale(0) translateY(-200px); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize everything
+        createStars();
+        createSprinkles();
+        createBubbles();
+        addInteractiveEffects();
+    </script>
 </body>
 </html>
